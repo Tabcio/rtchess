@@ -1,0 +1,4 @@
+Infastapi
+uvicorn
+websockets
+firebase-admin
