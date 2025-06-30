@@ -1,0 +1,38 @@
+{
+  "Plains": {
+    "description": "Open, flat ground, offering no penalties or bonuses.",
+    "movement_modifier": 1.0,
+    "visibility_modifier": 1.0,
+    "combat_modifier": 1.0
+  },
+  "Forest": {
+    "description": "Dense woodland, slowing movement but providing cover and reducing visibility.",
+    "movement_modifier": 0.7,
+    "visibility_modifier": 0.8,
+    "combat_modifier": 1.1
+  },
+  "Hill": {
+    "description": "Elevated ground, offering a commanding view and defensive bonuses.",
+    "movement_modifier": 0.9,
+    "visibility_modifier": 1.2,
+    "combat_modifier": 1.05
+  },
+  "River": {
+    "description": "Flowing water, significantly impeding movement. Crossing may require special abilities or bridges (future feature).",
+    "movement_modifier": 0.3,
+    "visibility_modifier": 1.0,
+    "combat_modifier": 0.9
+  },
+  "Swamp": {
+    "description": "Marshy, difficult terrain that slows movement and can affect unit morale.",
+    "movement_modifier": 0.5,
+    "visibility_modifier": 0.9,
+    "combat_modifier": 1.0
+  },
+  "Mountain": {
+    "description": "Impassable or very difficult terrain for most units, providing significant defensive positions.",
+    "movement_modifier": 0.1,
+    "visibility_modifier": 1.5,
+    "combat_modifier": 1.2
+  }
+}
