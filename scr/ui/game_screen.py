@@ -1,20 +1,39 @@
 # real_time_chess/src/ui/game_screen.py
 
-# This module will be responsible for drawing the game state to the screen.
-# It assumes a graphical library (like Pygame or a simple console drawing) will be used.
-# For this skeletal version, we'll use print statements to simulate drawing.
+import pygame
+import os
 
-# Import necessary modules (assuming a mock game state for testing)
-# In a real UI, you'd import specific UI components or assets.
+# Define some basic constants for this example, in a real game these would be in constants.py
+TILE_SIZE = 64
+BOARD_OFFSET_X = 50
+BOARD_OFFSET_Y = 50
+
+# Colors (RGB)
+COLOR_WHITE = (255, 255, 255)
+COLOR_BLACK = (0, 0, 0)
+COLOR_LIGHT_TILE = (222, 184, 135) # BurlyWood
+COLOR_DARK_TILE = (139, 69, 19)   # SaddleBrown
+COLOR_FOG_OF_WAR = (50, 50, 50, 200) # Dark grey with transparency
+COLOR_KING_AURA = (0, 255, 0, 80) # Green with transparency for King's aura
+COLOR_MESSAGE_PATH = (0, 0, 255) # Blue for messenger path
+COLOR_PLANNING_LINE = (255, 255, 0) # Yellow for planned moves
+
+# Asset paths (relative to the main.py or where the game is run from)
+# This assumes the script is run from the root 'real_time_chess' directory
+ASSETS_DIR = os.path.join(os.path.dirname(__file__), '..', '..', 'assets')
+UNIT_SPRITES_DIR = os.path.join(ASSETS_DIR, 'images', 'units')
+TERRAIN_TEXTURES_DIR = os.path.join(ASSETS_DIR, 'images', 'terrain')
+UI_ELEMENTS_DIR = os.path.join(ASSETS_DIR, 'images', 'ui')
+
 
 class GameScreen:
     """
-    Renders the main game view, including the battlefield, units, and fog of war.
-    This class acts as the visual representation layer of the game state.
+    Renders the main game view using Pygame, including the battlefield, units,
+    fog of war, and other visual elements.
     """
     def __init__(self, screen_width: int, screen_height: int, board_size: tuple = (8, 8)):
         """
-        Initializes the GameScreen with display dimensions.
+        Initializes the GameScreen with display dimensions and loads assets.
 
         Args:
             screen_width (int): The width of the game window/screen in pixels.
@@ -24,214 +43,221 @@ class GameScreen:
         self.screen_width = screen_width
         self.screen_height = screen_height
         self.board_size = board_size
-        self.tile_size = min(screen_width // board_size[0], screen_height // board_size[1]) # Calculate tile size
+        self.tile_size = TILE_SIZE # Calculated dynamically based on constants
+
+        # Initialize Pygame display. pygame.init() is safe to call multiple times.
+        pygame.init() 
+
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        pygame.display.set_caption("RTChess: The General's Gambit")
+
+        self.assets = {}
+        self._load_assets()
         print(f"GameScreen initialized: {screen_width}x{screen_height} pixels. Tile size: {self.tile_size}.")
+
+    def _load_assets(self):
+        """Loads all necessary game assets (images, fonts, etc.) or generates placeholders."""
+        print("Loading assets or generating placeholders...")
+        self.assets['units'] = {}
+        self.assets['terrain'] = {}
+        self.assets['ui'] = {}
+
+        # Ensure asset directories exist
+        os.makedirs(UNIT_SPRITES_DIR, exist_ok=True)
+        os.makedirs(TERRAIN_TEXTURES_DIR, exist_ok=True)
+
+        # Unit colors for placeholders
+        unit_colors = {"player1": (0, 100, 255), "player2": (255, 0, 0)} # Blue for player1, Red for player2
+
+        # Load unit sprites (example: 'pawn_white.png', 'king_black.png')
+        unit_types = ["pawn", "rook", "knight", "bishop", "queen", "king"]
+        players = ["player1", "player2"]
+
+        for unit_type in unit_types:
+            for player_id in players:
+                color_for_unit = unit_colors.get(player_id, (150, 150, 150)) 
+
+                filename = f"{unit_type}_{player_id}.png"
+                path = os.path.join(UNIT_SPRITES_DIR, filename)
+                try:
+                    if os.path.exists(path):
+                        image = pygame.image.load(path).convert_alpha()
+                        self.assets['units'][f"{unit_type}_{player_id}"] = pygame.transform.scale(image, (self.tile_size, self.tile_size))
+                    else:
+                        raise FileNotFoundError # Force generation if file doesn't exist
+                except (pygame.error, FileNotFoundError) as e:
+                    placeholder_surface = pygame.Surface((self.tile_size, self.tile_size), pygame.SRCALPHA)
+                    placeholder_surface.fill((0,0,0,0)) 
+                    pygame.draw.rect(placeholder_surface, color_for_unit, (self.tile_size//4, self.tile_size//4, self.tile_size//2, self.tile_size//2), 0, 5) # Rounded square
+                    
+                    font = pygame.font.Font(None, 24)
+                    text_surface = font.render(unit_type[0].upper(), True, COLOR_WHITE)
+                    text_rect = text_surface.get_rect(center=(self.tile_size // 2, self.tile_size // 2))
+                    placeholder_surface.blit(text_surface, text_rect)
+
+                    self.assets['units'][f"{unit_type}_{player_id}"] = placeholder_surface
+                    print(f"Generated placeholder for unit {unit_type}_{player_id} (Reason: {e})")
+
+        # Terrain colors for placeholders
+        terrain_colors = {
+            "plains": (144, 238, 144), 
+            "forest": (34, 139, 34),   
+            "hill": (139, 69, 19)      
+        }
+
+        terrain_types = ["plains", "forest", "hill"]
+        for terrain_type in terrain_types:
+            filename = f"{terrain_type}.png"
+            path = os.path.join(TERRAIN_TEXTURES_DIR, filename)
+            try:
+                if os.path.exists(path):
+                    image = pygame.image.load(path).convert()
+                    self.assets['terrain'][terrain_type] = pygame.transform.scale(image, (self.tile_size, self.tile_size))
+                else:
+                    raise FileNotFoundError 
+            except (pygame.error, FileNotFoundError) as e:
+                placeholder_surface = pygame.Surface((self.tile_size, self.tile_size))
+                placeholder_surface.fill(terrain_colors.get(terrain_type, (100, 100, 100))) 
+                self.assets['terrain'][terrain_type] = placeholder_surface
+                print(f"Generated placeholder for terrain {terrain_type} (Reason: {e})")
+
+        print("Assets loaded or placeholders generated.")
+
 
     def draw_board(self, battlefield_module):
         """
-        Draws the battlefield grid and terrain.
-
-        Args:
-            battlefield_module: Reference to the BattlefieldModule for terrain data.
+        Draws the battlefield grid and terrain textures.
         """
-        print("\n--- Drawing Battlefield ---")
         for y in range(self.board_size[1]):
-            row_str = ""
             for x in range(self.board_size[0]):
+                rect = pygame.Rect(
+                    BOARD_OFFSET_X + x * self.tile_size,
+                    BOARD_OFFSET_Y + y * self.tile_size,
+                    self.tile_size,
+                    self.tile_size
+                )
+                color = COLOR_LIGHT_TILE if (x + y) % 2 == 0 else COLOR_DARK_TILE
+                pygame.draw.rect(self.screen, color, rect)
+
                 terrain_info = battlefield_module.get_terrain_at([x, y])
                 if terrain_info:
-                    terrain_char = terrain_info["terrain"][0].upper() # 'P' for Plains, 'F' for Forest, 'H' for Hill
-                    row_str += f"{terrain_char} "
-                else:
-                    row_str += "? " # Unknown terrain
-            print(row_str)
-        print("---------------------------")
+                    terrain_type = terrain_info["terrain"].lower()
+                    if terrain_type in self.assets['terrain']:
+                        self.screen.blit(self.assets['terrain'][terrain_type], rect.topleft)
+
 
     def draw_units(self, unit_module, player_id: str, fog_of_war_module):
         """
         Draws active units on the board, respecting the fog of war.
-
-        Args:
-            unit_module: Reference to the UnitModule for unit data.
-            player_id (str): The ID of the player whose view is being rendered.
-            fog_of_war_module: Reference to the FogOfWarModule for visibility data.
         """
-        print(f"\n--- Drawing Units for Player '{player_id}' ---")
         visible_map = fog_of_war_module.get_visible_area(player_id)
         if not visible_map:
-            print("  Player map not initialized. Cannot draw units.")
             return
-
-        # Create a temporary board representation to draw units on
-        display_grid = [['. ' for _ in range(self.board_size[0])] for _ in range(self.board_size[1])]
 
         for unit in unit_module.get_all_active_units():
             x, y = unit.position
-            # Only draw unit if its position is visible to the player
-            if fog_of_war_module.is_within_bounds([x, y]) and visible_map[y][x]:
-                if unit.is_king:
-                    display_grid[y][x] = f"K{unit.player_id[-1]} " # K1 or K2
-                elif unit.player_id == player_id:
-                    display_grid[y][x] = f"{unit.unit_type[0].upper()}{unit.player_id[-1]} " # P1, R1, N2 etc.
-                else: # Enemy unit
-                    display_grid[y][x] = "E " # Simple 'E' for enemy, regardless of type
-            # TODO: Add logic to draw based on last_seen_unit_id if using that FOW feature
+            # Always show own units for debug/dev, or if visible through FOW
+            is_visible_by_fow = fog_of_war_module.is_within_bounds([x, y]) and visible_map[y][x]
+            
+            if is_visible_by_fow or unit.player_id == player_id:
+                unit_sprite_key = f"{unit.unit_type.lower()}_{unit.player_id}"
+                
+                if unit_sprite_key in self.assets['units']:
+                    unit_image = self.assets['units'][unit_sprite_key]
+                    self.screen.blit(unit_image, (BOARD_OFFSET_X + x * self.tile_size, BOARD_OFFSET_Y + y * self.tile_size))
+                
+                if unit.is_king and unit.player_id == player_id:
+                    self.draw_command_aura(unit.position)
 
-        for y in range(self.board_size[1]):
-            row_str = ""
-            for x in range(self.board_size[0]):
-                if not visible_map[y][x]:
-                    row_str += "XX" # Fog of war
-                else:
-                    row_str += display_grid[y][x]
-            print(row_str)
-        print("-------------------------")
+    def draw_command_aura(self, king_position):
+        """Draws the King's 2-square green command aura."""
+        x_c, y_c = king_position
+        for dy in range(-2, 3):
+            for dx in range(-2, 3):
+                ax, ay = x_c + dx, y_c + dy
+                if 0 <= ax < self.board_size[0] and 0 <= ay < self.board_size[1]:
+                    aura_surface = pygame.Surface((self.tile_size, self.tile_size), pygame.SRCALPHA)
+                    pygame.draw.rect(aura_surface, COLOR_KING_AURA, aura_surface.get_rect())
+                    self.screen.blit(aura_surface, (BOARD_OFFSET_X + ax * self.tile_size, BOARD_OFFSET_Y + ay * self.tile_size))
+
+    def draw_messengers(self, messenger_module, player_id: str, fog_of_war_module):
+        """
+        Draws messengers and their paths.
+        """
+        visible_map = fog_of_war_module.get_visible_area(player_id)
+        if not visible_map:
+            return
+
+        for messenger in messenger_module.get_all_active_messengers():
+            mx, my = messenger.position
+            target_unit = messenger.target_unit 
+            
+            is_messenger_visible = fog_of_war_module.is_within_bounds([mx, my]) and visible_map[my][mx]
+            is_target_visible = False
+            if target_unit:
+                tx, ty = target_unit.position
+                is_target_visible = fog_of_war_module.is_within_bounds([tx, ty]) and visible_map[ty][tx]
+
+            if is_messenger_visible:
+                center_x = BOARD_OFFSET_X + mx * self.tile_size + self.tile_size // 2
+                center_y = BOARD_OFFSET_Y + my * self.tile_size + self.tile_size // 2
+                pygame.draw.circle(self.screen, COLOR_MESSAGE_PATH, (center_x, center_y), self.tile_size // 6)
+
+                if is_target_visible:
+                    target_center_x = BOARD_OFFSET_X + tx * self.tile_size + self.tile_size // 2
+                    target_center_y = BOARD_OFFSET_Y + ty * self.tile_size + self.tile_size // 2
+                    pygame.draw.line(self.screen, COLOR_MESSAGE_PATH, (center_x, center_y), (target_center_x, target_center_y), 2)
+
+
+    def draw_planning_lines(self, planning_data):
+        """
+        Draws planned movement lines during the planning phase.
+        """
+        for start_pos, end_pos in planning_data:
+            start_pixel_x = BOARD_OFFSET_X + start_pos[0] * self.tile_size + self.tile_size // 2
+            start_pixel_y = BOARD_OFFSET_Y + start_pos[1] * self.tile_size + self.tile_size // 2
+            end_pixel_x = BOARD_OFFSET_X + end_pos[0] * self.tile_size + self.tile_size // 2
+            end_pixel_y = BOARD_OFFSET_Y + end_pos[1] * self.tile_size + self.tile_size // 2
+            pygame.draw.line(self.screen, COLOR_PLANNING_LINE, (start_pixel_x, start_pixel_y), (end_pixel_x, end_pixel_y), 3)
+
 
     def draw_fog_of_war(self, fog_of_war_module, player_id: str):
         """
-        Displays the fog of war overlay for a given player.
-        (This is partially handled by draw_units, but can be separate for pure FOW view).
-
-        Args:
-            fog_of_war_module: Reference to the FogOfWarModule.
-            player_id (str): The ID of the player.
+        Applies the fog of war overlay. This should be drawn *on top* of other elements.
         """
-        fog_of_war_module.display_player_map(player_id) # Uses the FOW module's own display method
+        visible_map = fog_of_war_module.get_visible_area(player_id)
+        if not visible_map:
+            return
 
-    def render(self, game_state, player_id: str):
+        fog_surface = pygame.Surface((self.screen_width, self.screen_height), pygame.SRCALPHA)
+        for y in range(self.board_size[1]):
+            for x in range(self.board_size[0]):
+                if not visible_map[y][x]:
+                    rect = pygame.Rect(
+                        BOARD_OFFSET_X + x * self.tile_size,
+                        BOARD_OFFSET_Y + y * self.tile_size,
+                        self.tile_size,
+                        self.tile_size
+                    )
+                    pygame.draw.rect(fog_surface, COLOR_FOG_OF_WAR, rect)
+        self.screen.blit(fog_surface, (0, 0))
+
+
+    def render(self, game_state, player_id: str, planning_data=None):
         """
         Renders the entire game screen for a specific player's perspective.
-
-        Args:
-            game_state: A reference to the main Game object.
-            player_id (str): The ID of the player whose view is being rendered.
         """
-        print(f"\n=============== Rendering for Player '{player_id}' ===============\n")
+        self.screen.fill(COLOR_BLACK) # Clear the screen each frame
+
         self.draw_board(game_state.battlefield_module)
         self.draw_units(game_state.unit_module, player_id, game_state.fog_of_war_module)
-        # self.draw_fog_of_war(game_state.fog_of_war_module, player_id) # Can be called separately if desired
-        # TODO: Add drawing for messengers, UI elements (HUD, cards etc.)
-        print("\n=======================================================\n")
+        self.draw_messengers(game_state.messenger_module, player_id, game_state.fog_of_war_module)
 
+        if planning_data:
+            self.draw_planning_lines(planning_data)
 
-# Example usage for testing this file directly
-if __name__ == "__main__":
-    print("--- Testing GameScreen ---")
+        self.draw_fog_of_war(game_state.fog_of_war_module, player_id)
 
-    # Mock dependent modules and classes for standalone testing
-    class MockUnit:
-        def __init__(self, unit_id, player_id, pos, unit_type, is_king=False):
-            self.id = unit_id
-            self.player_id = player_id
-            self.position = list(pos)
-            self.unit_type = unit_type
-            self.is_king = is_king
-            self.is_alive = True # Assume alive for drawing
+        # TODO: Add drawing for UI elements (HUD, cards etc.) from hud.py if implemented
 
-    class MockUnitModule:
-        def __init__(self):
-            self.units = {
-                "P1_King": MockUnit("P1_King", "player1", [0, 0], "King", True),
-                "P1_Pawn1": MockUnit("P1_Pawn1", "player1", [1, 1], "Pawn"),
-                "P1_Rook1": MockUnit("P1_Rook1", "player1", [0, 7], "Rook"),
-                "P2_King": MockUnit("P2_King", "player2", [7, 7], "King", True),
-                "P2_Pawn1": MockUnit("P2_Pawn1", "player2", [6, 6], "Pawn"),
-                "P2_Knight1": MockUnit("P2_Knight1", "player2", [5, 5], "Knight"),
-            }
-        def get_all_active_units(self):
-            return list(self.units.values())
-
-    class MockBattlefieldModule:
-        def __init__(self, size=(8, 8)):
-            self.size = size
-            self.grid = [[{"terrain": "Plains"} for _ in range(size[0])] for _ in range(size[1])]
-            self.grid[2][2]["terrain"] = "Forest"
-            self.grid[3][3]["terrain"] = "Hill"
-
-        def get_terrain_at(self, position):
-            x, y = position
-            if 0 <= x < self.size[0] and 0 <= y < self.size[1]:
-                terrain_type = self.grid[y][x]["terrain"]
-                # Simulating TERRAIN_TYPES dict for testing
-                mock_terrain_types = {
-                    "Plains": {"terrain": "Plains"}, "Forest": {"terrain": "Forest"}, "Hill": {"terrain": "Hill"}
-                }
-                return mock_terrain_types.get(terrain_type)
-            return None
-        def is_within_bounds(self, pos):
-            x, y = pos
-            return 0 <= x < self.size[0] and 0 <= y < self.size[1]
-
-
-    class MockFogOfWarModule:
-        def __init__(self, board_size=(8,8)):
-            self.board_size = board_size
-            self.player_maps = {} # {player_id: [[bool]]}
-
-        def initialize_player_map(self, player_id):
-            self.player_maps[player_id] = [[False for _ in range(self.board_size[0])] for _ in range(self.board_size[1])]
-
-        def reveal_area(self, player_id, center_pos, radius):
-            x_c, y_c = center_pos
-            for y in range(max(0, y_c - radius), min(self.board_size[1], y_c + radius + 1)):
-                for x in range(max(0, x_c - radius), min(self.board_size[0], x_c + radius + 1)):
-                    distance = ((x - x_c)**2 + (y - y_c)**2)**0.5
-                    if distance <= radius:
-                        if self.is_within_bounds([x, y]): # Ensure it's within bounds before setting
-                             self.player_maps[player_id][y][x] = True
-
-        def get_visible_area(self, player_id):
-            return self.player_maps.get(player_id, [])
-
-        def display_player_map(self, player_id):
-            # Already implemented in FogOfWarModule, just a mock here
-            print(f"  (Displaying player '{player_id}' raw FOW map via mock)")
-            player_map = self.player_maps.get(player_id, [])
-            for row in player_map:
-                print(" ".join(['O' if cell else 'X' for cell in row]))
-
-        def is_within_bounds(self, pos):
-            x, y = pos
-            return 0 <= x < self.board_size[0] and 0 <= y < self.board_size[1]
-
-
-    # A minimal MockGame to hold references to the modules
-    class MockGame:
-        def __init__(self, board_size=(8,8)):
-            self.unit_module = MockUnitModule()
-            self.battlefield_module = MockBattlefieldModule(board_size)
-            self.fog_of_war_module = MockFogOfWarModule(board_size)
-            # Initialize player maps and reveal King's starting area
-            self.fog_of_war_module.initialize_player_map("player1")
-            self.fog_of_war_module.initialize_player_map("player2")
-
-            # Reveal initial King areas for testing
-            p1_king_pos = self.unit_module.units["P1_King"].position
-            p1_king_sight = self.unit_module.units["P1_King"].sight_range if hasattr(self.unit_module.units["P1_King"], 'sight_range') else 3
-            self.fog_of_war_module.reveal_area("player1", p1_king_pos, p1_king_sight)
-
-            p2_king_pos = self.unit_module.units["P2_King"].position
-            p2_king_sight = self.unit_module.units["P2_King"].sight_range if hasattr(self.unit_module.units["P2_King"], 'sight_range') else 3
-            self.fog_of_war_module.reveal_area("player2", p2_king_pos, p2_king_sight)
-
-
-    game_board_size = (8, 8)
-    mock_game_instance = MockGame(game_board_size)
-    game_screen = GameScreen(screen_width=800, screen_height=600, board_size=game_board_size)
-
-    # Render for Player 1
-    game_screen.render(mock_game_instance, "player1")
-
-    # Render for Player 2
-    game_screen.render(mock_game_instance, "player2")
-
-    # Simulate P1_Pawn1 moving and revealing more, then re-render
-    print("\n--- Simulating P1_Pawn1 move and re-rendering for Player 1 ---")
-    mock_game_instance.unit_module.units["P1_Pawn1"].position = [3, 2]
-    # Update FOW based on new pawn position (simulate a game tick's FOW update)
-    mock_game_instance.fog_of_war_module.update_player_map_from_unit_vision(
-        "player1", mock_game_instance.unit_module.units["P1_Pawn1"], mock_game_instance.battlefield_module
-    )
-    game_screen.render(mock_game_instance, "player1")
-
-    print("\n--- End of GameScreen Test ---")
+        pygame.display.flip() # Update the full display Surface to the screen
