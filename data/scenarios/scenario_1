@@ -1,0 +1,104 @@
+{
+  "scenario_name": "Clash at the Crossroads",
+  "description": "A balanced starting scenario on a standard 8x8 board, where two opposing forces meet in open plains, with a small forest patch providing some cover.",
+  "board_size": [8, 8],
+  "players": [
+    "player1",
+    "player2"
+  ],
+  "initial_units": [
+    {
+      "id": "P1_King",
+      "player_id": "player1",
+      "unit_type": "King",
+      "position": [0, 0]
+    },
+    {
+      "id": "P1_Pawn_A",
+      "player_id": "player1",
+      "unit_type": "Pawn",
+      "position": [0, 1]
+    },
+    {
+      "id": "P1_Pawn_B",
+      "player_id": "player1",
+      "unit_type": "Pawn",
+      "position": [1, 1]
+    },
+    {
+      "id": "P1_Rook_A",
+      "player_id": "player1",
+      "unit_type": "Rook",
+      "position": [0, 7]
+    },
+    {
+      "id": "P1_Knight_A",
+      "player_id": "player1",
+      "unit_type": "Knight",
+      "position": [1, 0]
+    },
+    {
+      "id": "P2_King",
+      "player_id": "player2",
+      "unit_type": "King",
+      "position": [7, 7]
+    },
+    {
+      "id": "P2_Pawn_A",
+      "player_id": "player2",
+      "unit_type": "Pawn",
+      "position": [7, 6]
+    },
+    {
+      "id": "P2_Pawn_B",
+      "player_id": "player2",
+      "unit_type": "Pawn",
+      "position": [6, 6]
+    },
+    {
+      "id": "P2_Rook_A",
+      "player_id": "player2",
+      "unit_type": "Rook",
+      "position": [7, 0]
+    },
+    {
+      "id": "P2_Knight_A",
+      "player_id": "player2",
+      "unit_type": "Knight",
+      "position": [6, 7]
+    }
+  ],
+  "initial_cards": {
+    "player1": [
+      "morale_boost",
+      "scouting_report",
+      "rapid_dispatch"
+    ],
+    "player2": [
+      "morale_boost",
+      "overhead_view"
+    ]
+  },
+  "terrain_setup": [
+    {
+      "position": [3, 3],
+      "type": "Forest"
+    },
+    {
+      "position": [3, 4],
+      "type": "Forest"
+    },
+    {
+      "position": [4, 3],
+      "type": "Forest"
+    },
+    {
+      "position": [4, 4],
+      "type": "Forest"
+    },
+    {
+      "position": [5, 2],
+      "type": "Hill"
+    }
+  ]
+}
