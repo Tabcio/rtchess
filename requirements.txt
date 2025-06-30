@@ -1,4 +1,4 @@
-Infastapi
+fastapi
 uvicorn
 websockets
 firebase-admin
