@@ -1,0 +1,63 @@
+{
+  "morale_boost": {
+    "name": "Morale Boost",
+    "description": "Temporarily increases a unit's morale, improving combat effectiveness for a short duration.",
+    "phase": "active_phase",
+    "cost": 50,
+    "effect_type": "unit_buff",
+    "effect_params": {
+      "attribute": "morale",
+      "value": 20,
+      "duration": 30
+    },
+    "target_type": "single_unit"
+  },
+  "scouting_report": {
+    "name": "Scouting Report",
+    "description": "Reveals a larger area of the map around your King at the start of the game.",
+    "phase": "planning_phase",
+    "cost": 0,
+    "effect_type": "map_reveal",
+    "effect_params": {
+      "radius": 5
+    },
+    "target_type": "area"
+  },
+  "rapid_dispatch": {
+    "name": "Rapid Dispatch",
+    "description": "Your messengers travel twice as fast for a limited time, reducing the risk of interception.",
+    "phase": "active_phase",
+    "cost": 25,
+    "effect_type": "messenger_buff",
+    "effect_params": {
+      "attribute": "speed_modifier",
+      "value": 2.0,
+      "duration": 15
+    },
+    "target_type": "player"
+  },
+  "reinforce_pawn": {
+    "name": "Reinforce Pawn",
+    "description": "Deploy an additional Pawn unit at your starting position during the planning phase.",
+    "phase": "planning_phase",
+    "cost": 10,
+    "effect_type": "unit_spawn",
+    "effect_params": {
+      "unit_type": "Pawn",
+      "spawn_at_king_pos": true
+    },
+    "target_type": "none"
+  },
+  "overhead_view": {
+    "name": "Overhead View",
+    "description": "Briefly lifts the fog of war over a large area, revealing enemy positions.",
+    "phase": "active_phase",
+    "cost": 75,
+    "effect_type": "map_reveal",
+    "effect_params": {
+      "radius": 8,
+      "duration": 5
+    },
+    "target_type": "area"
+  }
+}
