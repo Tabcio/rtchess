@@ -1,0 +1,27 @@
+{
+  "map_name": "Standard 8x8 Grid",
+  "description": "A default 8x8 chessboard-like map, featuring a central forest and a hill for strategic variety.",
+  "board_size": [8, 8],
+  "terrain_layout": [
+    {
+      "position": [3, 3],
+      "type": "Forest"
+    },
+    {
+      "position": [3, 4],
+      "type": "Forest"
+    },
+    {
+      "position": [4, 3],
+      "type": "Forest"
+    },
+    {
+      "position": [4, 4],
+      "type": "Forest"
+    },
+    {
+      "position": [5, 2],
+      "type": "Hill"
+    }
+  ]
+}
